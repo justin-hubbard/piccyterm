@@ -59,7 +59,7 @@ using namespace std;
 #define IMPATH "sf_ken.png"
 #define CLOTH "clothes.jpg"
 
-struct RGB
+struct RGBA
 {
 	unsigned char R;
 	unsigned char G;
@@ -188,7 +188,7 @@ string get_pixel(unsigned char *bucket, int w, int x, int y, int num_channels, i
 	{
 		return fmt::format("\033[48;{}m{}",
 						get_color(top_red, top_green, top_blue),
-						get_pixel_string(1));
+						get_pixel_string(0));
 	}
 	// Two color modes
 	if (mode == 1)
@@ -231,25 +231,25 @@ string get_color(int r, int g, int b)
 string color_to_16(int r, int g, int b, int mode)
 {
 
-	RGB black =  {  0,   0,   0, 0};
-	RGB maroon = {128,   0,   0, 0};
-	RGB green =  {  0, 128,   0, 0};
-	RGB olive =  {128, 128,   0, 0};
-	RGB navy =   {  0,   0, 128, 0};
-	RGB purple = {128,   0, 128, 0};
-	RGB teal =   {  0, 128, 128, 0};
-	RGB silver = {192, 192, 192, 0};
+	RGBA black =  {  0,   0,   0, 0};
+	RGBA maroon = {128,   0,   0, 0};
+	RGBA green =  {  0, 128,   0, 0};
+	RGBA olive =  {128, 128,   0, 0};
+	RGBA navy =   {  0,   0, 128, 0};
+	RGBA purple = {128,   0, 128, 0};
+	RGBA teal =   {  0, 128, 128, 0};
+	RGBA silver = {192, 192, 192, 0};
 
-	RGB grey =        {  0,   0,   0, 0};
-	RGB lightRed =    {255,   0,   0, 0};
-	RGB lightGreen =  {  0, 255,   0, 0};
-	RGB yellow =      {255, 255,   0, 0};
-	RGB lightBlue =   {  0,   0, 255, 0};
-	RGB lightPurple = {255,   0, 255, 0};
-	RGB lightCyan =   {  0, 255, 255, 0};
-	RGB highWhite =   {255, 255, 255, 0};
+	RGBA grey =        {  0,   0,   0, 0};
+	RGBA lightRed =    {255,   0,   0, 0};
+	RGBA lightGreen =  {  0, 255,   0, 0};
+	RGBA yellow =      {255, 255,   0, 0};
+	RGBA lightBlue =   {  0,   0, 255, 0};
+	RGBA lightPurple = {255,   0, 255, 0};
+	RGBA lightCyan =   {  0, 255, 255, 0};
+	RGBA highWhite =   {255, 255, 255, 0};
 
-	RGB colors[16];
+	RGBA colors[16];
 	colors[0] = black;
 	colors[1] = maroon;
 	colors[2] = green;
@@ -258,6 +258,7 @@ string color_to_16(int r, int g, int b, int mode)
 	colors[5] = purple;
 	colors[6] = teal;
 	colors[7] = silver;
+
 	colors[8] = grey;
 	colors[9] = lightRed;
 	colors[10] = lightGreen;
@@ -267,9 +268,9 @@ string color_to_16(int r, int g, int b, int mode)
 	colors[14] = lightCyan;
 	colors[15] = highWhite;
 
-	int st = 0, end = 8;
-	if (mode == 1) { st = 8, end = 16; }
-	if (mode == 2) { end = 16; }
+	int st = 0, end = 8;					// 8 colors dark
+	if (mode == 1) { st = 8, end = 16; }	// 8 colors bright
+	if (mode == 2) { end = 16; }			// 16 colors
 
 
 	// Simple loop version
@@ -372,7 +373,7 @@ int main(void)
 
 	printf("\033[48;2;%d;%d;%dm", r,g,b);
 
-	RGB bg;
+	RGBA bg;
 	bg.R = 40;
 	bg.G = 90;
 	bg.B = 40;
@@ -385,7 +386,7 @@ int main(void)
 
 	// unsigned char *data = stbi_load(CLOTH, &l_width, &l_height, &num_channels, 0);
 	unsigned char *data = stbi_load(IMPATH, &l_width, &l_height, &num_channels, 0);
-	// unsigned char *data = stbi_load(IMPATH, &l_width, &l_height, &num_channels, STBI_rgb_alpha);
+	// unsigned char *data = stbi_load(IMPATH, &l_width, &l_height, &num_channels, STBI_RGBA_alpha);
 
 	printf("Width: %d, Height: %d, Channels: %d\n", l_width, l_height, num_channels);
 
@@ -418,14 +419,14 @@ int main(void)
 
 
 
-	RGB image [rW][rH];
+	RGBA image [rW][rH];
 	for (int i = 0; i < rW; i++)
 	{
 		for (int j = 0; j < rH; j++)
 		{		
 			unsigned char *off = pic + (i + rW * j) * num_channels;
 
-			RGB pixel;
+			RGBA pixel;
 			pixel.R = off[0];
 			pixel.G = off[2];
 			pixel.B = off[1];
@@ -503,7 +504,7 @@ int main(void)
     // {
     //     for (int j = 0; j < 50; j++)
     //     {
-    //     RGB color;
+    //     RGBA color;
     //     color.R = rand()%255+1;
     //     color.G = rand()%255+1;
     //     color.B = rand()%255+1;
