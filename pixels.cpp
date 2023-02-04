@@ -52,8 +52,9 @@ using namespace std;
 #define C_256 3 // 16 + 36r + 6g + b
 #define C_TRUE 4
 
-#define CUR_COLOR 2
-#define IMG_SCALE 3
+#define COLOR_MODE 4
+#define BLOCKSIZE 1
+#define IMG_SCALE 2
 
 
 #define IMPATH "sf_ken.png"
@@ -71,15 +72,13 @@ struct RGBA
 string get_pixel_string(int choice);
 void blackout(void);
 string get_pixel(unsigned char *bucket, int w, int x, int y, int num_channels, int mode);
-string get_color(int r, int g, int b);
-string color_to_8(int r, int g, int b);
-string color_to_8bright(int r, int g, int b);
-string color_to_8plus8(int r, int g, int b);
-string color_to_16(int r, int g, int b, int mode);
-string color_to_256(int r, int g, int b);
-string color_to_24bit(int r, int g, int b);
+string get_color_string(int r, int g, int b);
+int color_to_16(int r, int g, int b, int mode);
+int color_to_256(int r, int g, int b);
+int color_to_gray(int r, int g, int b);
 int color_distance(int r1, int g1, int b1, int r2, int g2, int b3);
-string color_to_True(int r, int g, int b);
+RGBA color_to_True(int r, int g, int b);
+RGBA rgb_to_struct(int r, int g, int b);
 
 
 int tg_loadImage(unsigned char* bucket, char* filename)
@@ -174,6 +173,8 @@ string tg_dp_teeny_string(unsigned char *bucket, int w, int h, int num_channels)
 
 
 // string get_pixel_row()
+// 8, 16, 256, grayscale strings: bg: \033[48;5;{color}m fg: \033[38;5;{color}m
+// true color: bg: \033[48;2;{color};{color};{color}m fg: \033[38;2;{color};{color};{color}m
 
 string get_pixel(unsigned char *bucket, int w, int x, int y, int num_channels, int mode)
 {
@@ -182,12 +183,12 @@ string get_pixel(unsigned char *bucket, int w, int x, int y, int num_channels, i
 				  top_green = 	 off[1],
 				  top_blue =  	 off[2];
 				  
-
+	mode = BLOCKSIZE;
 	// Single color only modes
 	if (mode == 0)
 	{
 		return fmt::format("\033[48;{}m{}",
-						get_color(top_red, top_green, top_blue),
+						get_color_string(top_red, top_green, top_blue),
 						get_pixel_string(0));
 	}
 	// Two color modes
@@ -199,8 +200,8 @@ string get_pixel(unsigned char *bucket, int w, int x, int y, int num_channels, i
 
 		// teeny block square pixel mode
 		return fmt::format("\033[48;{}m\033[38;{}m{}", 
-						get_color(top_red, top_green, top_blue),
-						get_color(bottom_red, bottom_green, bottom_blue),
+						get_color_string(top_red, top_green, top_blue),
+						get_color_string(bottom_red, bottom_green, bottom_blue),
 						get_pixel_string(2));
 	}
 
@@ -215,20 +216,30 @@ string get_pixel(unsigned char *bucket, int w, int x, int y, int num_channels, i
 	// return fmt::format("\033[48;{}m ", get_color(top_red, top_green, top_blue));
 }
 
-string get_color(int r, int g, int b)
+string get_color_string(int r, int g, int b)
 {
-	int mode = CUR_COLOR;
+	int mode = COLOR_MODE; // Probably change to a switch statement
 	
 	if (mode < 3) // 8 colors, 8 colors BRIGHT, 16 colors
-	{ return color_to_16(r,g,b,mode); }
+	{ 
+		return fmt::format("5;{};", color_to_16(r,g,b,mode)); 
+	}
 	if (mode == 3) // 256 colors
-	{ return color_to_256(r,g,b); }
+	{ 
+		return fmt::format("5;{};",color_to_256(r,g,b)); 
+	}
 	if (mode == 4)
-	{ return color_to_True(r,g,b); }
+	{
+		return fmt::format("5;{};",color_to_gray(r,g,b));
+	}
+	if (mode == 5)
+	{  // return color_to_True(r,g,b); 
+		return fmt::format("2;{};{};{}", r, g, b);
+	}
 	return "fuck";
 }
 
-string color_to_16(int r, int g, int b, int mode)
+int color_to_16(int r, int g, int b, int mode)
 {
 
 	RGBA black =  {  0,   0,   0, 0};
@@ -287,11 +298,11 @@ string color_to_16(int r, int g, int b, int mode)
 		}
 	}
 
-
-	return fmt::format("5;{}", color_num);
+	return color_num;
+	// return fmt::format("5;{}", color_num);
 }
 
-string color_to_256(int r, int g, int b)
+int color_to_256(int r, int g, int b)
 {
 	int den = 216;
 
@@ -301,12 +312,27 @@ string color_to_256(int r, int g, int b)
 
 	int color = 16 + 36 * r + 6 * g + b;
 
-    return fmt::format("5;{}", color);
+	return color;
+    // return fmt::format("5;{}", color);
 }
 
-string color_to_True(int r, int g, int b)
+// Returns equivalent grayscale value for pixel as integer
+int color_to_gray(int r, int g, int b)
 {
-	return fmt::format("2;{};{};{}",r,g,b);
+	double rG = r/255;
+	double gG = g/255;
+	double bG = b/255;
+
+	return (0.2126 * r + 0.7152 * g + 0.0722 * b);
+}
+
+
+// THIS FUNCTION PROBABLY REDUNDANT
+// EXCEPT FOR STRUCTURE CONSISTENCY
+RGBA color_to_True(int r, int g, int b) 
+{
+	return rgb_to_struct(r,g,b);
+	// return fmt::format("2;{};{};{}",r,g,b);
 }
 
 int color_distance(int r1, int g1, int b1, int r2, int g2, int b2)
@@ -322,6 +348,17 @@ int color_distance(int r1, int g1, int b1, int r2, int g2, int b2)
 		((2 + ((255 - r_mean) / 256)) * (bD * bD))
 		);
 		
+}
+
+RGBA rgb_to_struct(int r, int g, int b)
+{
+	RGBA st;
+	st.R = (unsigned char)r;
+	st.G = (unsigned char)g;
+	st.B = (unsigned char)b;
+	st.A = 0;
+	
+	return st;
 }
 
 
