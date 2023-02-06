@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include <iostream>
+#include <cmath>
 #include <random>
 #include <ctime>
 #include <string>
@@ -79,6 +80,8 @@ int color_to_gray(int r, int g, int b);
 int color_distance(int r1, int g1, int b1, int r2, int g2, int b3);
 RGBA color_to_True(int r, int g, int b);
 RGBA rgb_to_struct(int r, int g, int b);
+int map_to_range(int value, int a1, int a2, int b1, int b2);
+double linearize_sRGB(int val);
 
 
 int tg_loadImage(unsigned char* bucket, char* filename)
@@ -236,7 +239,7 @@ string get_color_string(int r, int g, int b)
 	{  // return color_to_True(r,g,b); 
 		return fmt::format("2;{};{};{}", r, g, b);
 	}
-	return "fuck";
+	return "poop";
 }
 
 int color_to_16(int r, int g, int b, int mode)
@@ -299,7 +302,6 @@ int color_to_16(int r, int g, int b, int mode)
 	}
 
 	return color_num;
-	// return fmt::format("5;{}", color_num);
 }
 
 int color_to_256(int r, int g, int b)
@@ -313,17 +315,38 @@ int color_to_256(int r, int g, int b)
 	int color = 16 + 36 * r + 6 * g + b;
 
 	return color;
-    // return fmt::format("5;{}", color);
 }
 
 // Returns equivalent grayscale value for pixel as integer
 int color_to_gray(int r, int g, int b)
 {
-	double rG = r/255;
-	double gG = g/255;
-	double bG = b/255;
+	double rG = linearize_sRGB(r);
+	double gG = linearize_sRGB(g);
+	double bG = linearize_sRGB(b);
 
-	return (0.2126 * r + 0.7152 * g + 0.0722 * b);
+	double Y = (0.2126 * rG) + (0.7152 * gG) + (0.0722 * bG);
+	double L;
+	if (Y <= (216.0/24389.0))
+	{
+		L = Y * (24389.0/27.0);
+	}
+	else
+	{
+		L = (pow(Y, (1.0/3)) * 116) - 16;
+	}
+		
+	return map_to_range(L, 0, 100, 232, 255);
+}
+
+double linearize_sRGB(int val)
+{
+	double dec = ((1.0 * val)/255.0);
+
+	if ( dec <= 0.04045)
+	{
+		return dec / 12.92;
+	}
+	return pow((dec + 0.055)/1.055, 2.4);
 }
 
 
@@ -332,7 +355,6 @@ int color_to_gray(int r, int g, int b)
 RGBA color_to_True(int r, int g, int b) 
 {
 	return rgb_to_struct(r,g,b);
-	// return fmt::format("2;{};{};{}",r,g,b);
 }
 
 int color_distance(int r1, int g1, int b1, int r2, int g2, int b2)
@@ -347,11 +369,18 @@ int color_distance(int r1, int g1, int b1, int r2, int g2, int b2)
 		(4 * (gD * gD)) +
 		((2 + ((255 - r_mean) / 256)) * (bD * bD))
 		);
-		
+}
+
+int map_to_range(int value, int a1, int a2, int b1, int b2)
+{
+	double slope = 1.0 * (b2 - b1) / (a2 - a1);
+	double output  = b1 + (slope * (value - a1));
+	return (int)output;
 }
 
 RGBA rgb_to_struct(int r, int g, int b)
 {
+
 	RGBA st;
 	st.R = (unsigned char)r;
 	st.G = (unsigned char)g;
