@@ -23,6 +23,9 @@
 // #include <fmt/format-inl.h>
 // #include <fmt/format.h>
 
+// includes implemented by me
+// #include pt_color.cpp
+
 
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -53,13 +56,14 @@ using namespace std;
 #define C_256 3 // 16 + 36r + 6g + b
 #define C_TRUE 4
 
-#define COLOR_MODE 4
+#define COLOR_MODE 5
 #define BLOCKSIZE 1
-#define IMG_SCALE 2
+#define IMG_SCALE 1
 
 
 #define IMPATH "sf_ken.png"
 #define CLOTH "clothes.jpg"
+#define SHEET1 "ryu.png"
 
 struct RGBA
 {
@@ -67,6 +71,12 @@ struct RGBA
 	unsigned char G;
 	unsigned char B;
 	unsigned char A;
+};
+
+struct Pair2D
+{
+	int x;
+	int y;
 };
 
 
@@ -82,6 +92,7 @@ RGBA color_to_True(int r, int g, int b);
 RGBA rgb_to_struct(int r, int g, int b);
 int map_to_range(int value, int a1, int a2, int b1, int b2);
 double linearize_sRGB(int val);
+string pt_display_subimage(unsigned char *bucket, int w, int h, Pair2D origin, Pair2D sub, int num_channels);
 
 
 int tg_loadImage(unsigned char* bucket, char* filename)
@@ -154,6 +165,26 @@ void tg_display_teeny_pixels(unsigned char *bucket, int width, int height, int n
 
 }
 
+string pt_display_subimage(unsigned char *bucket, int w, int h, Pair2D origin, Pair2D sub, int num_channels)
+{
+	string image_string = "";
+
+	for (int row = origin.y; row < sub.y; row += 2)
+	{
+		for (int col = origin.x; col < sub.x; col++)
+		{
+	        image_string.append(get_pixel(bucket, w, col, row, num_channels, 0));
+		}
+		// image_string.append("\n");
+		image_string.append("\033[48;2;0;0;0m\n"); // Set to black so newline isn't colored
+								// This should actually set it to "plain"
+	}
+
+	std::cout << image_string << endl;
+	//fmt::print(image_string);
+	return image_string;
+}
+
 string tg_dp_teeny_string(unsigned char *bucket, int w, int h, int num_channels)
 {
 	string image_string = "";
@@ -207,16 +238,6 @@ string get_pixel(unsigned char *bucket, int w, int x, int y, int num_channels, i
 						get_color_string(bottom_red, bottom_green, bottom_blue),
 						get_pixel_string(2));
 	}
-
-
-	// return fmt::format("\033[48;2;{};{};{}m\033[38;2;{};{};{}m▄",
-	//         					top_red, top_green, top_blue,
-	//         				 bottom_red, bottom_green, bottom_blue);
-	// return fmt::format("\033[48;2;{};{};{}m\033[38;2;{};{};{}m▄",
-	//         					top_red, top_green, top_blue,
-	//         				 bottom_red, bottom_green, bottom_blue);
-	
-	// return fmt::format("\033[48;{}m ", get_color(top_red, top_green, top_blue));
 }
 
 string get_color_string(int r, int g, int b)
@@ -423,6 +444,12 @@ void resized(int in)
 	printf("Rows: %d\n", ws.ws_row);
 }
 
+void split_sprite_series(unsigned char *bucket, Pair2D origin, Pair2D xy_incr, int n, int n_channel, int output[])
+{
+	output[0] = 5;
+}
+
+
 int main(void)
 {
 
@@ -451,7 +478,7 @@ int main(void)
 	int l_width, l_height, num_channels;
 
 	// unsigned char *data = stbi_load(CLOTH, &l_width, &l_height, &num_channels, 0);
-	unsigned char *data = stbi_load(IMPATH, &l_width, &l_height, &num_channels, 0);
+	unsigned char *data = stbi_load(SHEET1, &l_width, &l_height, &num_channels, 0);
 	// unsigned char *data = stbi_load(IMPATH, &l_width, &l_height, &num_channels, STBI_RGBA_alpha);
 
 	printf("Width: %d, Height: %d, Channels: %d\n", l_width, l_height, num_channels);
@@ -475,113 +502,94 @@ int main(void)
 							    num_channels, STBIR_ALPHA_CHANNEL_NONE, 0);
 		pic = rData;
 	}
+	else { delete[] rData; }
 
-	// print_line(pic, 7, rW, num_channels);
-	// tg_display_pixels_usc(pic, rW, rH, num_channels);
-	 // tg_display_teeny_pixels(pic, rW, rH, num_channels);
-	string s_test = tg_dp_teeny_string(pic, rW, rH, num_channels);
+	//string s_test = tg_dp_teeny_string(pic, rW, rH, num_channels);
+	//string t_test = tg_dp_teeny_string(pic, 100, 60, num_channels);
+	string u_test = pt_display_subimage(pic, rW, rH, Pair2D{0, 0}, Pair2D{50,90}, num_channels);
+	string v_test = pt_display_subimage(pic, rW, rH, Pair2D{50, 0}, Pair2D{100,90}, num_channels);
 
+	// Pair2D org = {0,0};
+	// Pair2D incr = {30,60};
+	// int num_sprites = 4;
 
+	// int *series = new int[incr.x * incr.y * num_sprites];
+	// split_sprite_series(pic, org, incr, num_sprites, series);
 
-
-
-	RGBA image [rW][rH];
-	for (int i = 0; i < rW; i++)
-	{
-		for (int j = 0; j < rH; j++)
-		{		
-			unsigned char *off = pic + (i + rW * j) * num_channels;
-
-			RGBA pixel;
-			pixel.R = off[0];
-			pixel.G = off[2];
-			pixel.B = off[1];
-			pixel.A = (num_channels == 4) ? off[3] : 0;
-
-			if (pixel.A == 0) { pixel = bg;}
-
-			if (i == rW/2)
-			{
-				//printf("R: %d, G: %d, B: %d, Alpha: %d\n", off[0], off[2], off[1], off[3]);
-			}
-
-			image[i][j] = pixel;
-		}
-	}
+	// cout << "test: " << series[0];
 
 
-	// $$$$$$$$$$$$$$$$$$$$$$$
-
-	int test = 0;
-
-	if (test == 1)
-	{
-		int testW = 30;
-		int testH = 30;
-
-		printf("\033[48;2;%d;%d;%dm", 
-			image[testH][testW].R, 
-			image[testH][testW].G, 
-			image[testH][testW].B);
-		printf("X: %d, Y: %d\n", testW, testH);
-		printf("R: %d, G: %d, B: %d\n", 
-			image[testH][testW].R, 
-			image[testH][testW].G, 
-			image[testH][testW].B);
-		printf(" ");
-	}
-
-	for (int p = 0; p < rW; p++)
-		{printf("%d", p % 10);}
-	printf("\n");
-
-	if (test == 2)
-	{
-		for (int i = 0; i < rH; i++)
-	    {
-	    	// for (int p = 0; p < rW; p++)
-			// 	{printf("%d", p % 10);}
-			//printf("\n");
-	        for (int j = 0; j < rW; j++)
-	        {
-	        	printf("\033[48;2;%d;%d;%dm", image[j][i].R, image[j][i].B, image[j][i].G);
-	        	//printf("%d", j%10);
-	        	printf("  ");
-	        }
-	        blackout();
-	        printf("line %d\n", i);
-	    }
-	}
-	if (test == 3)
-	{
-		tg_display_pixels_usc(pic, rW, rH, num_channels);
-	}
-
-	// loadImage("hello");
-
-	// for (int i = 0; i < 20; i++)
+	// RGBA image [rW][rH];
+	// for (int i = 0; i < rW; i++)
 	// {
-	// 	printf(" ");
-	// 	printf("\033[48;2;%d;%d;%dm", r,g,b+i*5);
+	// 	for (int j = 0; j < rH; j++)
+	// 	{		
+	// 		unsigned char *off = pic + (i + rW * j) * num_channels;
+
+	// 		RGBA pixel;
+	// 		pixel.R = off[0];
+	// 		pixel.G = off[2];
+	// 		pixel.B = off[1];
+	// 		pixel.A = (num_channels == 4) ? off[3] : 0;
+
+	// 		if (pixel.A == 0) { pixel = bg;}
+
+	// 		if (i == rW/2)
+	// 		{
+	// 			//printf("R: %d, G: %d, B: %d, Alpha: %d\n", off[0], off[2], off[1], off[3]);
+	// 		}
+
+	// 		image[i][j] = pixel;
+	// 	}
 	// }
+
+
+	// // $$$$$$$$$$$$$$$$$$$$$$$
+
+	// int test = 0;
+
+	// if (test == 1)
+	// {
+	// 	int testW = 30;
+	// 	int testH = 30;
+
+	// 	printf("\033[48;2;%d;%d;%dm", 
+	// 		image[testH][testW].R, 
+	// 		image[testH][testW].G, 
+	// 		image[testH][testW].B);
+	// 	printf("X: %d, Y: %d\n", testW, testH);
+	// 	printf("R: %d, G: %d, B: %d\n", 
+	// 		image[testH][testW].R, 
+	// 		image[testH][testW].G, 
+	// 		image[testH][testW].B);
+	// 	printf(" ");
+	// }
+
+	// for (int p = 0; p < rW; p++)
+	// 	{printf("%d", p % 10);}
 	// printf("\n");
 
-	// for (int i = 0; i < 50; i++)
-    // {
-    //     for (int j = 0; j < 50; j++)
-    //     {
-    //     RGBA color;
-    //     color.R = rand()%255+1;
-    //     color.G = rand()%255+1;
-    //     color.B = rand()%255+1;
-    //     pixels[i][j] = color;
-    //         //printf("%d\n", pixels[i][j]);
-    //         printf("  ");
-    //         printf("\033[48;2;%d;%d;%dm", pixels[i][j].R, pixels[i][j].B, pixels[i][j].G);
-    //     }
-    // }
-
-
+	// if (test == 2)
+	// {
+	// 	for (int i = 0; i < rH; i++)
+	//     {
+	//     	// for (int p = 0; p < rW; p++)
+	// 		// 	{printf("%d", p % 10);}
+	// 		//printf("\n");
+	//         for (int j = 0; j < rW; j++)
+	//         {
+	//         	printf("\033[48;2;%d;%d;%dm", image[j][i].R, image[j][i].B, image[j][i].G);
+	//         	//printf("%d", j%10);
+	//         	printf("  ");
+	//         }
+	//         blackout();
+	//         printf("line %d\n", i);
+	//     }
+	// }
+	// if (test == 3)
+	// {
+	// 	tg_display_pixels_usc(pic, rW, rH, num_channels);
+	// }
 
 	
 	getchar();
