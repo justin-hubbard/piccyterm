@@ -25,14 +25,22 @@
 
 // includes implemented by me
 // #include pt_color.cpp
+#include "PT_Image.h"
 
 
 
-#define STB_IMAGE_IMPLEMENTATION
+// #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-#define STB_IMAGE_RESIZE_IMPLEMENTATION
+// #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image_resize.h"
+
+
+
+
+
 using namespace std;
+
+
 
 
 #define ESC "\x1b"
@@ -506,92 +514,23 @@ int main(void)
 
 	//string s_test = tg_dp_teeny_string(pic, rW, rH, num_channels);
 	//string t_test = tg_dp_teeny_string(pic, 100, 60, num_channels);
-	string u_test = pt_display_subimage(pic, rW, rH, Pair2D{0, 0}, Pair2D{50,90}, num_channels);
+	//  string u_test = pt_display_subimage(pic, rW, rH, Pair2D{0, 0}, Pair2D{50,90}, num_channels);
 	string v_test = pt_display_subimage(pic, rW, rH, Pair2D{50, 0}, Pair2D{100,90}, num_channels);
 
 	// Pair2D org = {0,0};
 	// Pair2D incr = {30,60};
 	// int num_sprites = 4;
 
+	PT_Image ptest(CLOTH);
+	cout << fmt::format("Width: {}", ptest.width) << endl;
+	printf("ehhlo");
+
+
 	// int *series = new int[incr.x * incr.y * num_sprites];
 	// split_sprite_series(pic, org, incr, num_sprites, series);
 
 	// cout << "test: " << series[0];
 
-
-	// RGBA image [rW][rH];
-	// for (int i = 0; i < rW; i++)
-	// {
-	// 	for (int j = 0; j < rH; j++)
-	// 	{		
-	// 		unsigned char *off = pic + (i + rW * j) * num_channels;
-
-	// 		RGBA pixel;
-	// 		pixel.R = off[0];
-	// 		pixel.G = off[2];
-	// 		pixel.B = off[1];
-	// 		pixel.A = (num_channels == 4) ? off[3] : 0;
-
-	// 		if (pixel.A == 0) { pixel = bg;}
-
-	// 		if (i == rW/2)
-	// 		{
-	// 			//printf("R: %d, G: %d, B: %d, Alpha: %d\n", off[0], off[2], off[1], off[3]);
-	// 		}
-
-	// 		image[i][j] = pixel;
-	// 	}
-	// }
-
-
-	// // $$$$$$$$$$$$$$$$$$$$$$$
-
-	// int test = 0;
-
-	// if (test == 1)
-	// {
-	// 	int testW = 30;
-	// 	int testH = 30;
-
-	// 	printf("\033[48;2;%d;%d;%dm", 
-	// 		image[testH][testW].R, 
-	// 		image[testH][testW].G, 
-	// 		image[testH][testW].B);
-	// 	printf("X: %d, Y: %d\n", testW, testH);
-	// 	printf("R: %d, G: %d, B: %d\n", 
-	// 		image[testH][testW].R, 
-	// 		image[testH][testW].G, 
-	// 		image[testH][testW].B);
-	// 	printf(" ");
-	// }
-
-	// for (int p = 0; p < rW; p++)
-	// 	{printf("%d", p % 10);}
-	// printf("\n");
-
-	// if (test == 2)
-	// {
-	// 	for (int i = 0; i < rH; i++)
-	//     {
-	//     	// for (int p = 0; p < rW; p++)
-	// 		// 	{printf("%d", p % 10);}
-	// 		//printf("\n");
-	//         for (int j = 0; j < rW; j++)
-	//         {
-	//         	printf("\033[48;2;%d;%d;%dm", image[j][i].R, image[j][i].B, image[j][i].G);
-	//         	//printf("%d", j%10);
-	//         	printf("  ");
-	//         }
-	//         blackout();
-	//         printf("line %d\n", i);
-	//     }
-	// }
-	// if (test == 3)
-	// {
-	// 	tg_display_pixels_usc(pic, rW, rH, num_channels);
-	// }
-
-	
 	getchar();
 
 	say("\x1b[2J");
