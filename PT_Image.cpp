@@ -5,6 +5,12 @@
 
 #include "PT_Image.h"
 
+    // std::vector<uint8_t> pixels;
+    // //uint8_t* pixels = NULL;
+    // size_t size = 0;
+    // int width;
+    // int height;
+    // int numberOfChannels;
 
 
     PT_Image::PT_Image(const char* filename)
