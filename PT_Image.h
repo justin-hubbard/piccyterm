@@ -12,9 +12,9 @@ struct RGBA
 
 struct TermColor
 {
-    unint8_t color;
+    uint8_t color;
     uint8_t alpha;
-}
+};
 
 struct Pair2D
 {

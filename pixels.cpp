@@ -73,19 +73,19 @@ using namespace std;
 #define CLOTH "clothes.jpg"
 #define SHEET1 "ryu.png"
 
-struct RGBA
-{
-	unsigned char R;
-	unsigned char G;
-	unsigned char B;
-	unsigned char A;
-};
+// struct RGBA
+// {
+// 	unsigned char R;
+// 	unsigned char G;
+// 	unsigned char B;
+// 	unsigned char A;
+// };
 
-struct Pair2D
-{
-	int x;
-	int y;
-};
+// struct Pair2D
+// {
+// 	int x;
+// 	int y;
+// };
 
 
 string get_pixel_string(int choice);

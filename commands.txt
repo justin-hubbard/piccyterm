@@ -1,0 +1,11 @@
+commands.txt
+
+Change zsh color settings
+export PS1 = "%B%{$fg[red]%}%n%B%{$reset_color%}%B@%B%{$fg[red]%}%m %b%{$fg[green]%}%~%{$reset_color%}%  "
+export PS1 = "%{$fg[cyan]%}%{$bg[blue]%}%n%B%{$reset_color%}%B@%b%{$fg[red]%}%m %b%{$fg[gray]%}%~%{$reset_color%}%  "
+
+
+build command
+g++ PT_Tester.cpp - o pttester
+
+g++ --std=c++11 pixels.cpp PT_Image.cpp -o pixo -lfmt

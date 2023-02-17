@@ -55,7 +55,7 @@
 
 
 
-    
+
 
     int PT_Image::color_to_16(int r, int g, int b, int mode)
     {
@@ -152,7 +152,7 @@
         return map_to_range(L, 0, 100, 232, 255);
     }
 
-    int PT_Image::color_distance(int r1, int g1, int b1, int r2, int g2, int b3)
+    int PT_Image::color_distance(int r1, int g1, int b1, int r2, int g2, int b2)
     {
         long r_mean = ((long)r1 + (long)r2)/2;
         long rD = (long)r1 - (long)r2;
